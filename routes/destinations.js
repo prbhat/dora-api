@@ -58,6 +58,38 @@ router.get('/recommend', function(req, res) {
 });
 
 
+router.get('/inspire_file', function(req, res) {
+
+    var url_parts = url.parse(req.url, true);
+    var destination = url_parts.query.destination;
+
+    var inspireFileName = destination.trim().toLowerCase()
+    winston.log(inspireFileName)
+    var pathToFile = 'routes/' + inspireFileName + '.txt'
+    //var pathToFile = 'routes/sanfranciscoca.txt'
+
+    var jsonObj = {}
+    var thingsToDoArray = []
+
+    lineReader.eachLine(pathToFile, function(line, last) {
+        console.log(line);
+        var strSplit = line.split("|")
+        winston.info(strSplit)
+        var currentThingToDo = {'name' : strSplit[0], 'url': strSplit[1]}
+        thingsToDoArray.push(currentThingToDo)
+          // do whatever you want with line...
+        if(last){
+            // or check if it's the last one
+            console.log('Done parsing file')
+            jsonObj = {'things-to-do' : thingsToDoArray}
+            
+
+            res.send(jsonObj)
+        }
+    });
+});
+
+
 router.get('/inspirehack', function(req, res) {
 
     var thingToDo1 = {'name': 'thing one', 'url': 'url1'}
@@ -117,9 +149,10 @@ router.get('/inspire1', function(req, res) {
                     // Get top 5 venues
                     for(var i = 0; i < items.length && i < 5; i++) {
                         venueId2Name.set(items[i].venue.id, items[i].venue.name)
+                        console.log("COPY THIS:", items[i].venue.name)
                     }
 
-                    callback(null, venueId2Name);
+                    callback(null, venueId2Name.values());
                   }
                 });
             // ===========================
@@ -130,6 +163,7 @@ router.get('/inspire1', function(req, res) {
             var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
             var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
             var venueIdKeys = venueId2Name.keys()
+            var fsImages = []
 
             for(var i = 0; i < venueIdKeys.length; i++) {
                 var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[i] + FOURSQUARE_URI_IMAGE_SUFFIX
@@ -138,7 +172,7 @@ router.get('/inspire1', function(req, res) {
                 request({
                         uri: FOURSQUARE_IMAGE_URI,
                         method: 'GET',
-                    }, function (currentVenueId, error, response) {
+                    }, function (error, response) {
 
                       if (error) {
                         winston.error('===== Error While Getting Photo Data from Foursquare====');
@@ -153,14 +187,15 @@ router.get('/inspire1', function(req, res) {
                         // Get top venue photos
                         for(var j = 0; j < items.length && j < 1; j++) {
                             var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                            winston.info(imageUrl)
+                            winston.info("COPY THIS", imageUrl)
+                            fsImages.push(imageUrl)
                             //venueId2Url.set(currentVenueId, imageUrl)
                         }
                       }
 
                     });
             }
-            callback(null, 'one')
+            callback(null, fsImages)
             
         }
     ],
