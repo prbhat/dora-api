@@ -12,6 +12,8 @@
     "cors": "^2.5.3",
     "debug": "~0.7.4",
     "express": "~4.0.0",
+    "hashmap": "^2.0.3",
+    "line-reader": "^0.2.4",
     "properties": "^1.2.1",
     "request": "^2.53.0",
     "serve-favicon": "*",
