@@ -17,6 +17,7 @@
     "properties": "^1.2.1",
     "request": "^2.53.0",
     "serve-favicon": "*",
-    "winston": "^0.9.0"
+    "winston": "^0.9.0",
+    "morgan": "~1.0.0"
   }
 }
