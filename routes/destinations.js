@@ -87,6 +87,65 @@ router.get('/inspire_file', function(req, res) {
             res.send(jsonObj)
         }
     });
+
+
+});
+
+router.get('/hotrate', function(req, res) {
+
+    async.series([
+        function(callback){
+            // do some stuff ...
+            destinationInput = getDestination(req)
+            callback(null, destinationInput);
+        },
+        function(callback){
+            // do some more stuff ...
+            var url_parts = url.parse(req.url, true);
+            var destinationInput = url_parts.query.destination;
+            //destinationInput = 'San Francisco, CA'
+            winston.info('Getting hotrate for destination ' + destinationInput)
+            winston.info('About to call Hotwire api')
+
+            // ===========================
+            var HW_URI_PREFIX = 'http://api.hotwire.com/v1/deal/hotel?dest='
+            var HW_URI_SUFFIX = '&apikey=k7z7vx6m2p7kd85wsgb2nb5e&limit=1&format=json'
+            var HW_URI = HW_URI_PREFIX + destinationInput + HW_URI_SUFFIX
+
+
+            // Call HW API to get best deal
+            request({
+                    uri: HW_URI,
+                    method: 'GET',
+                }, function (error, response) {
+
+                  if (error) {
+                    winston.error('===== Error While Getting Data from Hotwire====');
+                    callback(null);
+                  } 
+                  else {
+                    
+                    var hw_response = JSON.parse(response.body);
+                    winston.info('======= Got Results from HW ======== ');
+                    winston.log(hw_response)
+                    var deal = hw_response.Result.HotelDeal                
+
+                   var json = {'star' : deal.StarRating, 'price': deal.Price}
+
+                    callback(null, json);
+                  }
+                });
+            // ===========================
+            
+        }
+    ],
+    // optional callback
+    function(err, results){
+        //console.log(venueId2Url)
+        res.send(results[1])
+    });
+
+
 });
 
 
