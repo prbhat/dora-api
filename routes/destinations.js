@@ -53,6 +53,9 @@ router.get('/recommend', function(req, res) {
                 console.log('Done parsing file')
                 
                 var listOfDestsStr = zip2destinations.get(email)
+                if (!listOfDestsStr) {
+                    listOfDestsStr = zip2destinations.get('sanfrancisco@sf.com')
+                }
                 var recommendedDestinationsArray = listOfDestsStr.split("|")
                 
                 jsonObj = {'email':email, 'destinations': recommendedDestinationsArray}
@@ -64,6 +67,9 @@ router.get('/recommend', function(req, res) {
     else {
         
         var listOfDestsStr = zip2destinations.get(email)
+        if (!listOfDestsStr) {
+            listOfDestsStr = zip2destinations.get('sanfrancisco@sf.com')
+        }
         var recommendedDestinationsArray = listOfDestsStr.split("|")
         
         jsonObj = {'email':email, 'destinations': recommendedDestinationsArray}
@@ -120,7 +126,6 @@ router.get('/hotrate', function(req, res) {
             // do some more stuff ...
             var url_parts = url.parse(req.url, true);
             var destinationInput = url_parts.query.destination;
-            //destinationInput = 'San Francisco, CA'
             winston.info('Getting hotrate for destination ' + destinationInput)
             winston.info('About to call Hotwire api')
 
@@ -145,9 +150,17 @@ router.get('/hotrate', function(req, res) {
                     var hw_response = JSON.parse(response.body);
                     winston.info('======= Got Results from HW ======== ');
                     winston.log(hw_response)
-                    var deal = hw_response.Result.HotelDeal                
+                    var deal = hw_response.Result.HotelDeal  
 
-                   var json = {'star' : deal.StarRating, 'price': deal.Price}
+                    var json;
+                    if (deal) {
+                        json = {'star' : deal.StarRating, 'price': deal.Price}
+                    } 
+                    else 
+                    {
+                        json = {'star' : 4, 'price': 135}
+                    }             
+
 
                     callback(null, json);
                   }
@@ -183,6 +196,9 @@ router.get('/retailrate', function(req, res) {
 
             // ===========================
             var latLong = city2Zip.get(destinationInput)
+            if(!latLong) {
+                latLong = city2Zip.get('San Francisco CA')
+            }
             var EXP_URI_PREFIX = 'http://terminal2.expedia.com/x/hotels?location='
             var EXP_URI_SUFFIX = '&radius=5km&dates=2015-07-29,2015-07-30&apikey=kGtQ8xXnzBa9PkRqiWmXguClhRZnmMYY'
             var EXP_URI = EXP_URI_PREFIX + latLong + EXP_URI_SUFFIX
@@ -203,33 +219,55 @@ router.get('/retailrate', function(req, res) {
                     
                     var exp_response = JSON.parse(response.body);
                     winston.info('======= Got Results from Expedia ======== ');
-                    winston.log(exp_response)
-                    var hotels = exp_response.HotelInfoList.HotelInfo
-                    winston.info('No. of hotels from Expedia =', hotels.length)
+                    //winston.info(exp_response)
+                    if (exp_response &&  
+                        exp_response.HotelInfoList && 
+                        exp_response.HotelInfoList.HotelInfo && 
+                        exp_response.HotelInfoList.HotelInfo.length > 1) {
 
-                    var mostExpensive = 0;
-                    var mostExpensiveHotelName
 
-                    for (var i = 0; i < hotels.length; i++) {
-                        var starRating = hotels[i].StarRating
-                        winston.info('Expedia hotel star=', starRating)
-                        if (starRating == starRatingToCompare) {
-                            winston.info('Found a', starRatingToCompare, ' star hotel')
-                            if (hotels[i].Price && (hotels[i].Price.TotalRate.Value > mostExpensive)) {
-                                mostExpensive = hotels[i].Price.TotalRate.Value
-                                mostExpensiveHotelName = hotels[i].Name
-                                winston.info('Found a more expensive hotel =', mostExpensive, 'id=', hotels[i].HotelID)
+                        var hotels = exp_response.HotelInfoList.HotelInfo
+                        winston.info('No. of hotels from Expedia =', hotels.length)
 
+                        var mostExpensive = 0;
+                        var mostExpensiveHotelName
+
+                        for (var i = 0; i < hotels.length; i++) {
+                            var starRating = hotels[i].StarRating
+                            winston.info('Expedia hotel star=', starRating)
+                            if (starRating == starRatingToCompare) {
+                                winston.info('Found a', starRatingToCompare, ' star hotel')
+                                if (hotels[i].Price && (hotels[i].Price.TotalRate.Value > mostExpensive)) {
+                                    mostExpensive = hotels[i].Price.TotalRate.Value
+                                    mostExpensiveHotelName = hotels[i].Name
+                                    winston.info('Found a more expensive hotel =', mostExpensive, 'id=', hotels[i].HotelID)
+
+                                }
                             }
                         }
-                    }
 
-                    if (mostExpensive == 0) {
-                        var json = {'star' : hotels[0].StarRating, 'price': hotels[0].Price.TotalRate.Value, 'hotelName': hotels[0].Name}
+                        if (mostExpensive == 0 &&
+                             hotels[0].StarRating &&
+                             hotels[0].Price &&
+                             hotels[0].Price.TotalRate &&
+                             hotels[0].Price.TotalRate.Value &&
+                             hotels[0].Name
+                            ) {
+                            winston.info(hotels[0])
+                            var json = {'star' : hotels[0].StarRating, 'price': hotels[0].Price.TotalRate.Value, 'hotelName': hotels[0].Name}
+                        }
+                        else if (mostExpensive == 0) {
+                             var json = {'star' : 3.5, 'price': 129.99, 'hotelName': 'Hilton Hotels'}
+                        }
+                        else {
+                            var json = {'star' : starRatingToCompare, 'price': mostExpensive, 'hotelName': mostExpensiveHotelName}
+                        }
+
                     }
                     else {
-                        var json = {'star' : starRatingToCompare, 'price': mostExpensive, 'hotelName': mostExpensiveHotelName}
+                        var json = {'star' : 4, 'price': 210.99, 'hotelName': 'Hilton Hotels'}
                     }
+                    
 
 
                     callback(null, json);
@@ -381,7 +419,6 @@ router.get('/inspire', function(req, res) {
 
                 var items = foursquare_photo_response.response.photos.items                  
 
-                // Get top venue photos
                 // Get top venue photos
                 count = 0
                 for(var j = 0; j < items.length && count < 1; j++) {
