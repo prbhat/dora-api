@@ -8,8 +8,6 @@ var fs = require('fs');
 var lineReader = require('line-reader');
 var HashMap = require('HashMap');
 var url = require('url');
-var cities = require('cities');
-var geocoder = require('geocoder');
 
 var zip2destinations;
 
@@ -146,7 +144,6 @@ router.get('/hotrate', function(req, res) {
     ],
     // optional callback
     function(err, results){
-        //console.log(venueId2Url)
         res.send(results[1])
     });
 
@@ -224,127 +221,7 @@ router.get('/retailrate', function(req, res) {
     ],
     // optional callback
     function(err, results){
-        //console.log(venueId2Url)
         res.send(results[1])
-    });
-
-
-});
-
-
-router.get('/inspirehack', function(req, res) {
-
-    var thingToDo1 = {'name': 'thing one', 'url': 'url1'}
-    var thingToDo2 = {'name': 'thing two', 'url': 'url2'}
-    var thingsToDo = [thingToDo1, thingToDo2]
-
-    var deals = {'star': '4', 'hotrate': '100', 'retailrate': '200'}
-
-    var inspire = {'things-to-do': thingsToDo, 'deals': deals}
-
-    res.send(inspire)
-
-});
-
-/*
-router.get('/inspire1', function(req, res) {
-
-    var venueId2Name = new HashMap()
-    var venueId2Url = new HashMap()
-
-    async.series([
-        function(callback){
-            // do some stuff ...
-            destinationInput = getDestination(req)
-            callback(null, destinationInput);
-        },
-        function(callback){
-            // do some more stuff ...
-            var url_parts = url.parse(req.url, true);
-            var destinationInput = url_parts.query.destination;
-            //destinationInput = 'San Francisco, CA'
-            winston.info('Getting inspiration for destination ' + destinationInput)
-            winston.info('About to call Foursquare api')
-
-            // ===========================
-            var FOURSQUARE_URI_PREFIX = 'https://api.foursquare.com/v2/venues/explore?near='
-            var FOURSQUARE_URI_SUFFIX = '&oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
-            var FOURSQUARE_URI = FOURSQUARE_URI_PREFIX + destinationInput + FOURSQUARE_URI_SUFFIX
-
-
-            // Call Foursquare API to get things to do
-            request({
-                    uri: FOURSQUARE_URI,
-                    method: 'GET',
-                }, function (error, response) {
-
-                  if (error) {
-                    winston.error('===== Error While Getting Data from Foursquare====');
-                    callback(null);
-                  } 
-                  else {
-                    var foursquare_response = JSON.parse(response.body);
-                    winston.info('======= Got Results from Foursquare ======== ');
-
-                    var items = foursquare_response.response.groups[0].items                  
-
-                    // Get top 5 venues
-                    for(var i = 0; i < items.length && i < 5; i++) {
-                        venueId2Name.set(items[i].venue.id, items[i].venue.name)
-                        console.log("COPY THIS:", items[i].venue.name)
-                    }
-
-                    callback(null, venueId2Name.values());
-                  }
-                });
-            // ===========================
-            
-        },
-        function(callback) {
-
-            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
-            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
-            var venueIdKeys = venueId2Name.keys()
-            var fsImages = []
-
-            for(var i = 0; i < venueIdKeys.length; i++) {
-                var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[i] + FOURSQUARE_URI_IMAGE_SUFFIX
-
-                // Call Foursquare API to get things to do
-                request({
-                        uri: FOURSQUARE_IMAGE_URI,
-                        method: 'GET',
-                    }, function (error, response) {
-
-                      if (error) {
-                        winston.error('===== Error While Getting Photo Data from Foursquare====');
-                        callback(null);
-                      } 
-                      else {
-                        var foursquare_photo_response = JSON.parse(response.body);
-                        winston.info('======= Got Photo Results from Foursquare ======== ');
-
-                        var items = foursquare_photo_response.response.photos.items                  
-
-                        // Get top venue photos
-                        for(var j = 0; j < items.length && j < 1; j++) {
-                            var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                            winston.info("COPY THIS", imageUrl)
-                            fsImages.push(imageUrl)
-                            //venueId2Url.set(currentVenueId, imageUrl)
-                        }
-                      }
-
-                    });
-            }
-            callback(null, fsImages)
-            
-        }
-    ],
-    // optional callback
-    function(err, results){
-        //console.log(venueId2Url)
-        res.send(results)
     });
 
 
@@ -353,170 +230,220 @@ router.get('/inspire1', function(req, res) {
 
 router.get('/inspire', function(req, res) {
 
-    var destinationInput
-    var thingsToDo
-    var venueIds = []
+    var venueId2Name = new HashMap();
+    var venueId2Url = new HashMap();
 
     async.series([
         function(callback){
-            // do some stuff ...
-            destinationInput = getDestination(req)
-            callback(null, destinationInput);
-        },
-        function(callback){
-            // do some more stuff ...
             var url_parts = url.parse(req.url, true);
             var destinationInput = url_parts.query.destination;
-            //destinationInput = 'San Francisco, CA'
             winston.info('Getting inspiration for destination ' + destinationInput)
             winston.info('About to call Foursquare api')
 
             // ===========================
             var FOURSQUARE_URI_PREFIX = 'https://api.foursquare.com/v2/venues/explore?near='
             var FOURSQUARE_URI_SUFFIX = '&oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
-            var FOURSQUARE_URI = FOURSQUARE_URI_PREFIX + destinationInput + FOURSQUARE_URI_SUFFIX
-            var topVenues = []
-            var thingsToDo = []
-            var venueInfo = {}
-            
+            var FOURSQUARE_URI = FOURSQUARE_URI_PREFIX + destinationInput + FOURSQUARE_URI_SUFFIX 
 
             // Call Foursquare API to get things to do
-            request({
-                    uri: FOURSQUARE_URI,
-                    method: 'GET',
-                }, function (error, response) {
+            request(FOURSQUARE_URI, function (error, response, venueResponse) {
 
-                  if (error) {
+                if (error) {
                     winston.error('===== Error While Getting Data from Foursquare====');
-                    callback(null);
-                  } 
-                  else {
-                    var foursquare_response = JSON.parse(response.body);
-                    winston.info('======= Got Results from Foursquare ======== ');
+                    return;
+                } 
 
-                    var items = foursquare_response.response.groups[0].items                  
+                var foursquare_response = JSON.parse(response.body);
+                winston.info('======= Got Results from Foursquare ======== ');
 
-                    // Get top venues
-                    for(var i = 0; i < items.length && i < 5; i++) {
-                        //topVenues.push(items[i].venue.name)
-                        //venueInfo = {'name': items[i].venue.name, 'id': items[i].venue.id}
-                        //thingsToDo.push(venueInfo)
-                        //venueIds.push(items[i].venue.id)
+                var items = foursquare_response.response.groups[0].items                  
+
+                // Get top 5 venues
+                for(var i = 0; i < items.length && i < 5; i++) {
+                    venueId2Name.set(items[i].venue.id, items[i].venue.name)
+                    console.log("COPY THIS:", items[i].venue.name)
+                }
+
+                callback(null, venueId2Name.values())
+            });
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
 
 
-                        // ============================================
-                        var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
-                        var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
-                        var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + items[i].venue.id + FOURSQUARE_URI_IMAGE_SUFFIX
-                        var venueImages = []
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[0] + FOURSQUARE_URI_IMAGE_SUFFIX
 
-                        request({
-                            uri: FOURSQUARE_IMAGE_URI,
-                            method: 'GET',
-                        }, function (error, response) {
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
 
-                          if (error) {
-                            winston.error('===== Error While Getting Photo Data from Foursquare====');
-                            callback(null);
-                          } 
-                          else {
-                            var foursquare_photo_response = JSON.parse(response.body);
-                            winston.info('======= Got Photo Results from Foursquare ======== ');
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
 
-                            var items = foursquare_photo_response.response.photos.items                  
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
 
-                            // Get top venue photos
-                            
-                            for(var i = 0; i < items.length && i < 1; i++) {
-                                //topVenues.push(items[i].venue.name)
-                                var imageUrl = items[i].prefix + items[i].width + 'x' + items[i].height + items[i].suffix
-                                winston.info(imageUrl)
+                var items = foursquare_photo_response.response.photos.items                  
 
-                                //imageUrlArray.push(imageUrl)
-                                //venueInfo = {'name': items[i].venue.name, 'id': items[i].venue.id, 'image-url': imageUrl}
-                                //venueInfo.set('image-url', imageUrl)
-                                //thingsToDo.push(venueInfo)
-                                venueImages.push(imageUrl)
-                                venueInfo = {'name': items[i].venue.name, 'id1': items[i].venue.id, 'images' : imageUrl}
+                // Get top venue photos
+                for(var j = 0; j < items.length && j < 1; j++) {
+                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                    winston.info("COPY THIS", imageUrl)
+                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                }
+                callback(null, venueId2Url.values())
+            });
+        },
+        function(callback) {
 
-                            }
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
 
-                            
 
-                          }
-                        });
-                        //venueInfo.set('images', venueImages)
-                        //venueInfo = {'name': items[i].venue.name, 'id1': items[i].venue.id, 'images' : venueImages}
-                        thingsToDo.push(venueInfo)
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[1] + FOURSQUARE_URI_IMAGE_SUFFIX
 
-                    }
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
 
-                    winston.info('Image urls = ' + venueImages)
-                    callback(null, thingsToDo);
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
 
-                  }
-                }).end();
-            // ===========================
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                for(var j = 0; j < items.length && j < 1; j++) {
+                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                    winston.info("COPY THIS", imageUrl)
+                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                }
+                callback(null, venueId2Url.values())
+            });
+            
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
+
+
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[2] + FOURSQUARE_URI_IMAGE_SUFFIX
+
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
+
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
+
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                for(var j = 0; j < items.length && j < 1; j++) {
+                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                    winston.info("COPY THIS", imageUrl)
+                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                }
+                callback(null, venueId2Url.values())
+            });
+            
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
+
+
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[3] + FOURSQUARE_URI_IMAGE_SUFFIX
+
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
+
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
+
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                for(var j = 0; j < items.length && j < 1; j++) {
+                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                    winston.info("COPY THIS", imageUrl)
+                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                }
+                callback(null, venueId2Url.values())
+            });
+            
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
+
+
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[4] + FOURSQUARE_URI_IMAGE_SUFFIX
+
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
+
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
+
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                for(var j = 0; j < items.length && j < 1; j++) {
+                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                    winston.info("COPY THIS", imageUrl)
+                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                }
+                callback(null, venueId2Url.values())
+            });
             
         }
-
-        // function(callback) {
-
-        //     var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
-        //     var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
-        //     var imageUrlArray = []
-
-         
-        //     for(var i = 0; i < venueIds.length; i++) {
-        //         var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIds[i] + FOURSQUARE_URI_IMAGE_SUFFIX
-
-        //         winston.info('Venue id = ' + FOURSQUARE_IMAGE_URI)
-        //         // Call Foursquare API to get things to do
-        //         request({
-        //                 uri: FOURSQUARE_IMAGE_URI,
-        //                 method: 'GET',
-        //             }, function (error, response) {
-
-        //               if (error) {
-        //                 winston.error('===== Error While Getting Photo Data from Foursquare====');
-        //                 callback(null);
-        //               } 
-        //               else {
-        //                 var foursquare_photo_response = JSON.parse(response.body);
-        //                 winston.info('======= Got Photo Results from Foursquare ======== ');
-
-        //                 var items = foursquare_photo_response.response.photos.items                  
-
-        //                 // Get top venue photos
-                        
-        //                 for(var i = 0; i < items.length && i < 1; i++) {
-        //                     //topVenues.push(items[i].venue.name)
-        //                     var imageUrl = items[i].prefix + items[i].width + 'x' + items[i].height + items[i].suffix
-        //                     winston.info(imageUrl)
-
-        //                     imageUrlArray.push(imageUrl)
-        //                 }
-
-                        
-
-        //               }
-        //             });
-        //     }
-
-        //     callback(null, imageUrlArray)
-            
-        // }
     ],
     // optional callback
     function(err, results){
-        //winston.info('Async ' + results)
-        winston.info('IMAGE URLS=' + results[2])
-        res.send(results)
+        // results is now equal to ['one', 'two']
+        venue1 = {'name': results[0][0], 'url': results[1]}
+        venue2 = {'name': results[0][1], 'url': results[2]}
+        venue3 = {'name': results[0][2], 'url': results[3]}
+        venue4 = {'name': results[0][3], 'url': results[4]}
+        venue5 = {'name': results[0][4], 'url': results[5]}
+
+        venueArray = [venue1, venue2, venue3, venue4, venue5]
+
+        venueInfo = {'things-to-do': venueArray}
+
+        res.send(venueInfo)
     });
 
-
 });
-*/
 
 
 function getDestination(req) {
