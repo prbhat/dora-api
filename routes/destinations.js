@@ -12,8 +12,22 @@ var url = require('url');
 var zip2destinations;
 
 var city2Zip = new HashMap()
-city2Zip.set('Seattle', '47.606209,-122.332071')
-city2Zip.set('Denver', '39.739236,-104.99025')
+city2Zip.set('Las Vegas NV', '36.1699412,-115.1398296')
+city2Zip.set('Denver CO', '39.7392358,-104.990251')
+city2Zip.set('Rock Springs WY', '41.5874644,-109.2029043')
+city2Zip.set('Page AZ', '36.9147222,-111.4558333')
+city2Zip.set('Park City UT', '40.6460622,-111.4979729')
+city2Zip.set('Monterey CA', '36.6002378,-121.8946761')
+city2Zip.set('Los Angeles CA', '34.0522342,-118.2436849')
+city2Zip.set('Carmel CA', '36.5552386,-121.9232879')
+city2Zip.set('Sonoma CA', '38.291859,-122.4580356')
+city2Zip.set('Honolulu HI', '21.3069444,-157.8583333')
+city2Zip.set('Orlando FL', '28.5383355,-81.3792365')
+city2Zip.set('Miami FL', '25.7616798,-80.1917902')
+city2Zip.set('San Francisco CA', '37.7749295,-122.4194155')
+city2Zip.set('Chicago IL', '41.8781136,-87.6297982')
+city2Zip.set('Fort Myers FL', '26.640628,-81.8723084')
+
 
 
 router.get('/recommend', function(req, res) {
@@ -210,7 +224,13 @@ router.get('/retailrate', function(req, res) {
                         }
                     }
 
-                   var json = {'star' : starRatingToCompare, 'price': mostExpensive, 'hotelName': mostExpensiveHotelName}
+                    if (mostExpensive == 0) {
+                        var json = {'star' : hotels[0].StarRating, 'price': hotels[0].Price.TotalRate.Value, 'hotelName': hotels[0].Name}
+                    }
+                    else {
+                        var json = {'star' : starRatingToCompare, 'price': mostExpensive, 'hotelName': mostExpensiveHotelName}
+                    }
+
 
                     callback(null, json);
                   }

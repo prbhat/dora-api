@@ -1,2 +1,3 @@
-a@b.com=Monterey, CA|Napa, CA|Sonoma, CA|Las Vegas, NV
-c@d.com=Vancouver, BC|Portland, OR|San Francisco, CA
+saltlake@saltlakecity.com=Las Vegas NV|Denver CO|Rock Springs WY|Page AZ|Park City UT
+sanfrancisco@sf.com=Monterey CA|Los Angeles CA|Carmel CA|Sonoma CA|Honolulu HI
+Miami@miami.com=Orlando FL|Miami FL|San Francisco CA|Chicago IL|Fort Myers FL
