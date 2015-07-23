@@ -8,9 +8,14 @@ var fs = require('fs');
 var lineReader = require('line-reader');
 var HashMap = require('HashMap');
 var url = require('url');
+var cities = require('cities');
+var geocoder = require('geocoder');
 
 var zip2destinations;
 
+var city2Zip = new HashMap()
+city2Zip.set('Seattle', '47.606209,-122.332071')
+city2Zip.set('Denver', '39.739236,-104.99025')
 
 
 router.get('/recommend', function(req, res) {
@@ -148,6 +153,84 @@ router.get('/hotrate', function(req, res) {
 
 });
 
+router.get('/retailrate', function(req, res) {
+
+    async.series([
+        function(callback){
+            // do some stuff ...
+            destinationInput = getDestination(req)
+            callback(null, destinationInput);
+        },
+        function(callback){
+            // do some more stuff ...
+            var url_parts = url.parse(req.url, true);
+            var destinationInput = url_parts.query.destination;
+            var starRatingToCompare = url_parts.query.star;
+
+            winston.info('Getting retail for destination ' + destinationInput)
+            winston.info('About to call Expedia api')
+
+            // ===========================
+            var latLong = city2Zip.get(destinationInput)
+            var EXP_URI_PREFIX = 'http://terminal2.expedia.com/x/hotels?location='
+            var EXP_URI_SUFFIX = '&radius=5km&dates=2015-07-29,2015-07-30&apikey=kGtQ8xXnzBa9PkRqiWmXguClhRZnmMYY'
+            var EXP_URI = EXP_URI_PREFIX + latLong + EXP_URI_SUFFIX
+            winston.info("Expedia URL = ", EXP_URI)
+
+
+            // Call HW API to get best deal
+            request({
+                    uri: EXP_URI,
+                    method: 'GET',
+                }, function (error, response) {
+
+                  if (error) {
+                    winston.error('===== Error While Getting Data from Expedia====');
+                    callback(null);
+                  } 
+                  else {
+                    
+                    var exp_response = JSON.parse(response.body);
+                    winston.info('======= Got Results from Expedia ======== ');
+                    winston.log(exp_response)
+                    var hotels = exp_response.HotelInfoList.HotelInfo
+                    winston.info('No. of hotels from Expedia =', hotels.length)
+
+                    var mostExpensive = 0;
+                    var mostExpensiveHotelName
+
+                    for (var i = 0; i < hotels.length; i++) {
+                        var starRating = hotels[i].StarRating
+                        winston.info('Expedia hotel star=', starRating)
+                        if (starRating == starRatingToCompare) {
+                            winston.info('Found a', starRatingToCompare, ' star hotel')
+                            if (hotels[i].Price && (hotels[i].Price.TotalRate.Value > mostExpensive)) {
+                                mostExpensive = hotels[i].Price.TotalRate.Value
+                                mostExpensiveHotelName = hotels[i].Name
+                                winston.info('Found a more expensive hotel =', mostExpensive, 'id=', hotels[i].HotelID)
+
+                            }
+                        }
+                    }
+
+                   var json = {'star' : starRatingToCompare, 'price': mostExpensive, 'hotelName': mostExpensiveHotelName}
+
+                    callback(null, json);
+                  }
+                });
+            // ===========================
+            
+        }
+    ],
+    // optional callback
+    function(err, results){
+        //console.log(venueId2Url)
+        res.send(results[1])
+    });
+
+
+});
+
 
 router.get('/inspirehack', function(req, res) {
 
@@ -163,7 +246,7 @@ router.get('/inspirehack', function(req, res) {
 
 });
 
-
+/*
 router.get('/inspire1', function(req, res) {
 
     var venueId2Name = new HashMap()
@@ -433,7 +516,7 @@ router.get('/inspire', function(req, res) {
 
 
 });
-
+*/
 
 
 function getDestination(req) {
