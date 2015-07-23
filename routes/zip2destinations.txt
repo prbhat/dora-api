@@ -1,3 +1,6 @@
 saltlake@saltlakecity.com=Las Vegas NV|Denver CO|Rock Springs WY|Page AZ|Park City UT
 sanfrancisco@sf.com=Monterey CA|Los Angeles CA|Carmel CA|Sonoma CA|Honolulu HI
 Miami@miami.com=Orlando FL|Miami FL|San Francisco CA|Chicago IL|Fort Myers FL
+lina5acosta@gmail.com=Las Vegas NV|Denver CO|Rock Springs WY|Page AZ|Park City UT
+kerryannepriest@gmail.com=Monterey CA|Los Angeles CA|Carmel CA|Sonoma CA|Honolulu HI
+ricardoekeila@hotmail.com=Orlando FL|Miami FL|San Francisco CA|Chicago IL|Fort Myers FL

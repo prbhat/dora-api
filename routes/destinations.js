@@ -279,7 +279,7 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_response.response.groups[0].items                  
 
                 // Get top 5 venues
-                for(var i = 0; i < items.length && i < 5; i++) {
+                for(var i = 0; i < items.length && i < 15; i++) {
                     venueId2Name.set(items[i].venue.id, items[i].venue.name)
                     console.log("COPY THIS:", items[i].venue.name)
                 }
@@ -295,6 +295,7 @@ router.get('/inspire', function(req, res) {
 
 
             var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[0] + FOURSQUARE_URI_IMAGE_SUFFIX
+            console.info(FOURSQUARE_IMAGE_URI)
 
             // Call Foursquare API to get things to do
             request(FOURSQUARE_IMAGE_URI, function (error, response) {
@@ -310,10 +311,14 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_photo_response.response.photos.items                  
 
                 // Get top venue photos
-                for(var j = 0; j < items.length && j < 1; j++) {
-                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                    winston.info("COPY THIS", imageUrl)
-                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
                 }
                 callback(null, venueId2Url.values())
             });
@@ -341,10 +346,14 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_photo_response.response.photos.items                  
 
                 // Get top venue photos
-                for(var j = 0; j < items.length && j < 1; j++) {
-                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                    winston.info("COPY THIS", imageUrl)
-                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
                 }
                 callback(null, venueId2Url.values())
             });
@@ -373,10 +382,15 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_photo_response.response.photos.items                  
 
                 // Get top venue photos
-                for(var j = 0; j < items.length && j < 1; j++) {
-                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                    winston.info("COPY THIS", imageUrl)
-                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                // Get top venue photos
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
                 }
                 callback(null, venueId2Url.values())
             });
@@ -405,10 +419,14 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_photo_response.response.photos.items                  
 
                 // Get top venue photos
-                for(var j = 0; j < items.length && j < 1; j++) {
-                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                    winston.info("COPY THIS", imageUrl)
-                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
                 }
                 callback(null, venueId2Url.values())
             });
@@ -437,10 +455,86 @@ router.get('/inspire', function(req, res) {
                 var items = foursquare_photo_response.response.photos.items                  
 
                 // Get top venue photos
-                for(var j = 0; j < items.length && j < 1; j++) {
-                    var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
-                    winston.info("COPY THIS", imageUrl)
-                    venueId2Url.set(venueIdKeys[0], imageUrl)
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
+                }
+                callback(null, venueId2Url.values())
+            });
+            
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
+
+
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[5] + FOURSQUARE_URI_IMAGE_SUFFIX
+
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
+
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
+
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
+                }
+                callback(null, venueId2Url.values())
+            });
+            
+        },
+        function(callback) {
+
+            var FOURSQUARE_URI_IMAGE_PREFIX = 'https://api.foursquare.com/v2/venues/'
+            var FOURSQUARE_URI_IMAGE_SUFFIX = '/photos?oauth_token=K4CYK3B1Z4O0LXD0BYMX2S4YE0ZPACNYMGKWQCELDRE0KQVM&v=20150715'
+            var venueIdKeys = venueId2Name.keys()
+
+
+            var FOURSQUARE_IMAGE_URI = FOURSQUARE_URI_IMAGE_PREFIX + venueIdKeys[5] + FOURSQUARE_URI_IMAGE_SUFFIX
+
+            // Call Foursquare API to get things to do
+            request(FOURSQUARE_IMAGE_URI, function (error, response) {
+
+                if (error) {
+                    winston.error('===== Error While Getting Photo Data from Foursquare====');
+                    return;
+                } 
+
+                var foursquare_photo_response = JSON.parse(response.body);
+                winston.info('======= Got Photo Results from Foursquare ======== ');
+
+                var items = foursquare_photo_response.response.photos.items                  
+
+                // Get top venue photos
+                count = 0
+                for(var j = 0; j < items.length && count < 1; j++) {
+                    if (items[j].width < 650 && items[j].height < 650) {
+                        var imageUrl = items[j].prefix + items[j].width + 'x' + items[j].height + items[j].suffix
+                        winston.info("COPY THIS", imageUrl)
+                        venueId2Url.set(venueIdKeys[0], imageUrl)
+                        count++;
+                    }   
                 }
                 callback(null, venueId2Url.values())
             });
